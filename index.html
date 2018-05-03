@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <script type="module">
+      import * as weaver from "./src/items.js";
+
+      class Ticket extends weaver.ItemLine {
+        constructor({...kwargs}) {
+          super();
+          this.quantity = kwargs.quantity;
+          this.name = kwargs.name;
+          this.price = kwargs.price;
+        }
+
+        getQuantity() { return this.quantity; }
+        getPricePerItem() { return this.price; }
+      }
+
+      class Booking extends weaver.ItemSet {
+        constructor({...kwargs}) {
+          super();
+          this.name = kwargs.name;
+        }
+      }
+
+      class CustomBasket extends weaver.ItemSet {
+        static get version() { return '0.0.1'; }
+      }
+
+      var basket = new CustomBasket();
+
+      document.addEventListener("DOMContentLoaded", function(event) {
+        let booking = new Booking({name: "Some Tour"});
+        let booking2 = new Booking({name: "Another tour"});
+
+        let ticket = new Ticket({name: "Adult", quantity: 3, price: 20});
+        let ticket2 = new Ticket({name: "Family", quantity: 1, price: 100});
+        let ticket3 = new Ticket({name: "Adult", quantity: 10, price: 20});
+
+        console.log(`Ticket totals? ${ticket.getTotal()}, ${ticket2.getTotal()}, ${ticket3.getTotal()}`);
+
+        booking.push(ticket, ticket2);
+        console.log(`Booking total? ${booking.getTotal()}`);
+
+        booking2.push(ticket3);
+        console.log(`Booking2 total? ${booking2.getTotal()}`);
+
+        basket.push(booking, booking2);
+        console.log(`Basket total? ${basket.getTotal()}`);
+      });
+    </script>
+  </head>
+
+  <body>
+  </body>
+</html>

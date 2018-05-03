@@ -1,0 +1,14 @@
+{
+  "name": "basket-weaver",
+  "version": "0.0.1",
+  "description": "A set of primitives to weave custom e-commerce baskets, carts and itemsets",
+  "author": "Andre Engelbrecht <litt.fire.sa@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrewebdev/basket-weaver"
+  },
+  "license": "MIT",
+  "flat": true,
+  "dependencies": { },
+  "devDependencies": { }
+}

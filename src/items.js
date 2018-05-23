@@ -19,19 +19,18 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
+import {mul, sum, min, max} from './prices.js';
 
 
 /**
  * A single item or variant
  */
 export class Item {
-  getPricePerItem() {
-    throw "getPricePerItem() not implemented"
-  }
 
-  getPrice() {
-    throw "getPrice() not implemented"
-  }
+  getPricePerItem(...args) { return this.price; }
+
+  getPrice(...args) { return this.getPricePerItem(...args); }
+
 }
 
 
@@ -39,25 +38,31 @@ export class Item {
  * A single line of an order in a basket
  */
 export class ItemLine {
-  getPricePerItem() { throw "getPricePerItem() not implemented" }
+
+  getPricePerItem(...args) { return this.price; }
 
   getQuantity() { return 1; }
 
-  getTotal() { return this.getPricePerItem() * this.getQuantity(); }
+  getTotal(...args) {
+    return mul(this.getPricePerItem(...args), this.getQuantity());
+  }
+
 }
 
 
 /**
  * A group of products like a product with multiple variants
  */
-export class ItemRange {
-  getPricePerItem(item) { return item.getTotal(); }
+export class ItemRange extends Array {
 
-  getPriceRange() {
+  getPricePerItem(item, ...args) { return item.getPrice(...args); }
+
+  getPriceRange(...args) {
     let prices = this.map(item => this.getPricePerItem(item));
     if (!prices) throw "Cannot call getPriceRange() on an empty ItemRange";
-    return [Math.min(...prices), Math.max(...prices)];
+    return [min(...prices), max(...prices)];
   }
+
 }
 
 
@@ -65,11 +70,11 @@ export class ItemRange {
  * A set of products like an order or basket
  */
 export class ItemSet extends Array {
-  getSubTotal(item) { return item.getTotal(); }
 
-  getTotal() {
-    let subTotals = this.map(item => this.getSubTotal(item));
+  getTotal(...args) {
+    let subTotals = this.map(item => { return item.getTotal(...args); });
     if (!subTotals) throw "Cannot call getTotal() on an empty ItemSet";
-    return subTotals.reduce((x, y) => x + y);
+    return sum(...subTotals);
   }
+
 }

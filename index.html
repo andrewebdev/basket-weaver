@@ -3,17 +3,30 @@
   <head>
     <script type="module">
       import * as weaver from "./src/items.js";
+      import {Price, mul, sum, discounted} from "./src/prices.js";
 
       class Ticket extends weaver.ItemLine {
         constructor({...kwargs}) {
           super();
           this.quantity = kwargs.quantity;
           this.name = kwargs.name;
-          this.price = kwargs.price;
+          this.price = new Price(kwargs.price);
         }
-
         getQuantity() { return this.quantity; }
-        getPricePerItem() { return this.price; }
+      }
+
+      class ProductTicket extends weaver.Item {
+        constructor(price) {
+          super();
+          this.price = new Price(price);
+        }
+      }
+
+      class Product extends weaver.ItemRange {
+        constructor({...kwargs}) {
+          super();
+          this.name = kwargs.name;
+        }
       }
 
       class Booking extends weaver.ItemSet {
@@ -25,28 +38,59 @@
 
       class CustomBasket extends weaver.ItemSet {
         static get version() { return '0.0.1'; }
+
+        constructor(currency, ...args) {
+          super(...args);
+          this.currency = currency;
+        }
       }
 
-      var basket = new CustomBasket();
+      var basket = new CustomBasket({ currency: 'gbp' });
 
       document.addEventListener("DOMContentLoaded", function(event) {
+        let product = new Product({name: "Test Product For Range"});
+        product.push(
+          new ProductTicket({gbp: 30, eur: 50}),
+          new ProductTicket({gbp: 10, eur: 10}),
+          new ProductTicket({gbp: 40, eur: 30}),
+        );
+        console.log(`Price range for ${product.name}`);
+        console.log(product.getPriceRange());
+
         let booking = new Booking({name: "Some Tour"});
         let booking2 = new Booking({name: "Another tour"});
 
-        let ticket = new Ticket({name: "Adult", quantity: 3, price: 20});
-        let ticket2 = new Ticket({name: "Family", quantity: 1, price: 100});
-        let ticket3 = new Ticket({name: "Adult", quantity: 10, price: 20});
+        let ticket = new Ticket({
+          name: "Adult",
+          quantity: 3,
+          price: {gbp: 20, eur: 30}
+        });
 
-        console.log(`Ticket totals? ${ticket.getTotal()}, ${ticket2.getTotal()}, ${ticket3.getTotal()}`);
+        let ticket2 = new Ticket({
+          name: "Family",
+          quantity: 1,
+          price: {gbp: 100, eur: 200}
+        });
+
+        let ticket3 = new Ticket({
+          name: "Adult",
+          quantity: 10,
+          price: {gbp: 20, eur: 30}
+        });
+
+        console.log('---------------------');
+        console.log(`Ticket totals? ${ticket.getTotal().net('gbp')}, ${ticket2.getTotal().net('gbp')}, ${ticket3.getTotal().net('gbp')}`);
 
         booking.push(ticket, ticket2);
-        console.log(`Booking total? ${booking.getTotal()}`);
+        console.log(`Booking total? ${booking.getTotal().net('gbp')}`);
 
         booking2.push(ticket3);
-        console.log(`Booking2 total? ${booking2.getTotal()}`);
+        console.log(`Booking2 total? ${booking2.getTotal().net('gbp')}`);
 
         basket.push(booking, booking2);
-        console.log(`Basket total? ${basket.getTotal()}`);
+        console.log(`Basket total? ${basket.getTotal().net('gbp')}`);
+        console.log(`Basket discounted by 20%? ${discounted(basket.getTotal(), 0.2).net('gbp')}`);
+
       });
     </script>
   </head>

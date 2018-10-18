@@ -23,6 +23,31 @@ import {mul, sum, min, max} from './prices.js';
 
 
 /**
+ * The following is our compatability patches so that babel can transpile
+ * correctly to ES5, since es5 does not let you extend an Array.
+ */
+class ArrayLike {
+  constructor(...items) {
+    this._items = new Array(...items);
+  }
+}
+
+Object.defineProperties(
+  ArrayLike.prototype,
+  ['map', 'some', 'reduce', 'filter', 'find', 'push', 'pop'].reduce((obj, method) => {
+    obj[method] = {
+      value: function(...args) { return this._items[method](...args); },
+      enumerable: false,
+      configurable: true,
+      writeable: true,
+    };
+    return obj;
+  }, {})
+);
+/** End ES5 compatability patches **/
+
+
+/**
  * A single item or variant
  */
 export class Item {
@@ -53,7 +78,7 @@ export class ItemLine {
 /**
  * A group of products like a product with multiple variants
  */
-export class ItemRange extends Array {
+export class ItemRange extends ArrayLike {
 
   getPricePerItem(item, ...args) { return item.getPrice(...args); }
 
@@ -69,7 +94,7 @@ export class ItemRange extends Array {
 /**
  * A set of products like an order or basket
  */
-export class ItemSet extends Array {
+export class ItemSet extends ArrayLike {
 
   getTotal(...args) {
     let subTotals = this.map(item => { return item.getTotal(...args); });

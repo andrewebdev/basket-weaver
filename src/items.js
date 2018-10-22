@@ -30,20 +30,36 @@ class ArrayLike {
   constructor(...items) {
     this._items = new Array(...items);
   }
+
+  get length() { return this._items.length; }
 }
 
-Object.defineProperties(
-  ArrayLike.prototype,
-  ['map', 'some', 'reduce', 'filter', 'find', 'push', 'pop'].reduce((obj, method) => {
-    obj[method] = {
-      value: function(...args) { return this._items[method](...args); },
-      enumerable: false,
-      configurable: true,
-      writeable: true,
-    };
-    return obj;
-  }, {})
-);
+export function injectProtoMethods(klass, methods) {
+  Object.defineProperties(
+    klass.prototype,
+    methods.reduce((obj, method) => {
+      obj[method] = {
+        value: function(...args) { return this._items[method](...args); },
+        enumerable: false,
+        configurable: true,
+        writeable: true,
+      };
+      return obj;
+    }, {})
+  );
+}
+
+injectProtoMethods(ArrayLike, [
+  'map',
+  'some',
+  'reduce',
+  'filter',
+  'find',
+  'push',
+  'pop',
+  'splice',
+  'forEach',
+]);
 /** End ES5 compatability patches **/
 
 
